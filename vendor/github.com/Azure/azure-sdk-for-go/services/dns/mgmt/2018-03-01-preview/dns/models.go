@@ -52,8 +52,23 @@ const (
 )
 
 // PossibleRecordTypeValues returns an array of possible values for the RecordType const type.
-func PossibleRecordTypeValues() []RecordType {
-	return []RecordType{A, AAAA, CAA, CNAME, MX, NS, PTR, SOA, SRV, TXT}
+func PossibleRecordTypeValues() [10]RecordType {
+	return [10]RecordType{A, AAAA, CAA, CNAME, MX, NS, PTR, SOA, SRV, TXT}
+}
+
+// ZoneType enumerates the values for zone type.
+type ZoneType string
+
+const (
+	// Private ...
+	Private ZoneType = "Private"
+	// Public ...
+	Public ZoneType = "Public"
+)
+
+// PossibleZoneTypeValues returns an array of possible values for the ZoneType const type.
+func PossibleZoneTypeValues() [2]ZoneType {
+	return [2]ZoneType{Private, Public}
 }
 
 // AaaaRecord an AAAA record.
@@ -712,6 +727,12 @@ type ZoneProperties struct {
 	NumberOfRecordSets *int64 `json:"numberOfRecordSets,omitempty"`
 	// NameServers - The name servers for this DNS zone. This is a read-only property and any attempt to set this value will be ignored.
 	NameServers *[]string `json:"nameServers,omitempty"`
+	// ZoneType - The type of this DNS zone (Public or Private). Possible values include: 'Public', 'Private'
+	ZoneType ZoneType `json:"zoneType,omitempty"`
+	// RegistrationVirtualNetworks - A list of references to virtual networks that register hostnames in this DNS zone. This is a only when ZoneType is Private.
+	RegistrationVirtualNetworks *[]SubResource `json:"registrationVirtualNetworks,omitempty"`
+	// ResolutionVirtualNetworks - A list of references to virtual networks that resolve records in this DNS zone. This is a only when ZoneType is Private.
+	ResolutionVirtualNetworks *[]SubResource `json:"resolutionVirtualNetworks,omitempty"`
 }
 
 // ZonesDeleteFuture an abstraction for monitoring and retrieving the results of a long-running operation.
