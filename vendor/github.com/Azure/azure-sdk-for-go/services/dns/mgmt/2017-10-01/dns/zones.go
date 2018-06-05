@@ -78,7 +78,7 @@ func (client ZonesClient) CreateOrUpdatePreparer(ctx context.Context, resourceGr
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -152,7 +152,7 @@ func (client ZonesClient) DeletePreparer(ctx context.Context, resourceGroupName 
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -186,14 +186,13 @@ func (client ZonesClient) DeleteSender(req *http.Request) (future ZonesDeleteFut
 
 // DeleteResponder handles the response to the Delete request. The method always
 // closes the http.Response Body.
-func (client ZonesClient) DeleteResponder(resp *http.Response) (result ZoneDeleteResult, err error) {
+func (client ZonesClient) DeleteResponder(resp *http.Response) (result autorest.Response, err error) {
 	err = autorest.Respond(
 		resp,
 		client.ByInspecting(),
 		azure.WithErrorUnlessStatusCode(http.StatusOK, http.StatusAccepted, http.StatusNoContent),
-		autorest.ByUnmarshallingJSON(&result),
 		autorest.ByClosing())
-	result.Response = autorest.Response{Response: resp}
+	result.Response = resp
 	return
 }
 
@@ -231,7 +230,7 @@ func (client ZonesClient) GetPreparer(ctx context.Context, resourceGroupName str
 		"zoneName":          autorest.Encode("path", zoneName),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -296,7 +295,7 @@ func (client ZonesClient) ListPreparer(ctx context.Context, top *int32) (*http.R
 		"subscriptionId": autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -393,7 +392,7 @@ func (client ZonesClient) ListByResourceGroupPreparer(ctx context.Context, resou
 		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
 	}
 
-	const APIVersion = "2016-04-01"
+	const APIVersion = "2017-10-01"
 	queryParameters := map[string]interface{}{
 		"api-version": APIVersion,
 	}
@@ -453,5 +452,81 @@ func (client ZonesClient) listByResourceGroupNextResults(lastResults ZoneListRes
 // ListByResourceGroupComplete enumerates all values, automatically crossing page boundaries as required.
 func (client ZonesClient) ListByResourceGroupComplete(ctx context.Context, resourceGroupName string, top *int32) (result ZoneListResultIterator, err error) {
 	result.page, err = client.ListByResourceGroup(ctx, resourceGroupName, top)
+	return
+}
+
+// Update updates a DNS zone. Does not modify DNS records within the zone.
+// Parameters:
+// resourceGroupName - the name of the resource group.
+// zoneName - the name of the DNS zone (without a terminating dot).
+// parameters - parameters supplied to the Update operation.
+// ifMatch - the etag of the DNS zone. Omit this value to always overwrite the current zone. Specify the
+// last-seen etag value to prevent accidentally overwritting any concurrent changes.
+func (client ZonesClient) Update(ctx context.Context, resourceGroupName string, zoneName string, parameters ZoneUpdate, ifMatch string) (result Zone, err error) {
+	req, err := client.UpdatePreparer(ctx, resourceGroupName, zoneName, parameters, ifMatch)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "Update", nil, "Failure preparing request")
+		return
+	}
+
+	resp, err := client.UpdateSender(req)
+	if err != nil {
+		result.Response = autorest.Response{Response: resp}
+		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "Update", resp, "Failure sending request")
+		return
+	}
+
+	result, err = client.UpdateResponder(resp)
+	if err != nil {
+		err = autorest.NewErrorWithError(err, "dns.ZonesClient", "Update", resp, "Failure responding to request")
+	}
+
+	return
+}
+
+// UpdatePreparer prepares the Update request.
+func (client ZonesClient) UpdatePreparer(ctx context.Context, resourceGroupName string, zoneName string, parameters ZoneUpdate, ifMatch string) (*http.Request, error) {
+	pathParameters := map[string]interface{}{
+		"resourceGroupName": autorest.Encode("path", resourceGroupName),
+		"subscriptionId":    autorest.Encode("path", client.SubscriptionID),
+		"zoneName":          autorest.Encode("path", zoneName),
+	}
+
+	const APIVersion = "2017-10-01"
+	queryParameters := map[string]interface{}{
+		"api-version": APIVersion,
+	}
+
+	preparer := autorest.CreatePreparer(
+		autorest.AsContentType("application/json; charset=utf-8"),
+		autorest.AsPatch(),
+		autorest.WithBaseURL(client.BaseURI),
+		autorest.WithPathParameters("/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Network/dnsZones/{zoneName}", pathParameters),
+		autorest.WithJSON(parameters),
+		autorest.WithQueryParameters(queryParameters))
+	if len(ifMatch) > 0 {
+		preparer = autorest.DecoratePreparer(preparer,
+			autorest.WithHeader("If-Match", autorest.String(ifMatch)))
+	}
+	return preparer.Prepare((&http.Request{}).WithContext(ctx))
+}
+
+// UpdateSender sends the Update request. The method will close the
+// http.Response Body if it receives an error.
+func (client ZonesClient) UpdateSender(req *http.Request) (*http.Response, error) {
+	return autorest.SendWithSender(client, req,
+		azure.DoRetryWithRegistration(client.Client))
+}
+
+// UpdateResponder handles the response to the Update request. The method always
+// closes the http.Response Body.
+func (client ZonesClient) UpdateResponder(resp *http.Response) (result Zone, err error) {
+	err = autorest.Respond(
+		resp,
+		client.ByInspecting(),
+		azure.WithErrorUnlessStatusCode(http.StatusOK),
+		autorest.ByUnmarshallingJSON(&result),
+		autorest.ByClosing())
+	result.Response = autorest.Response{Response: resp}
 	return
 }
