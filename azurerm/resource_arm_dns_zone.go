@@ -45,6 +45,12 @@ func resourceArmDnsZone() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
+			"zone_type": {
+				Type:     schema.TypeString,
+				Default:  "Public",
+				Optional: true,
+			},
+
 			"tags": tagsSchema(),
 		},
 	}
@@ -57,12 +63,16 @@ func resourceArmDnsZoneCreate(d *schema.ResourceData, meta interface{}) error {
 	name := d.Get("name").(string)
 	resGroup := d.Get("resource_group_name").(string)
 	location := "global"
+	zone_type := d.Get("zone_type").(string)
 
 	tags := d.Get("tags").(map[string]interface{})
 
 	parameters := dns.Zone{
 		Location: &location,
 		Tags:     expandTags(tags),
+		ZoneProperties: &dns.ZoneProperties{
+			ZoneType: dns.ZoneType(zone_type),
+		},
 	}
 
 	etag := ""
@@ -106,6 +116,7 @@ func resourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	d.Set("resource_group_name", resGroup)
 	d.Set("number_of_record_sets", resp.NumberOfRecordSets)
 	d.Set("max_number_of_record_sets", resp.MaxNumberOfRecordSets)
+	d.Set("zone_type", resp.ZoneType)
 
 	nameServers := make([]string, 0, len(*resp.NameServers))
 	for _, ns := range *resp.NameServers {

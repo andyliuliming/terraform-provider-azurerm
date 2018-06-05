@@ -43,6 +43,11 @@ func dataSourceArmDnsZone() *schema.Resource {
 				Set:      schema.HashString,
 			},
 
+			"zone_type": {
+				Type:     schema.TypeString,
+				Computed: true,
+			},
+
 			"tags": tagsForDataSourceSchema(),
 		},
 	}
@@ -87,6 +92,7 @@ func dataSourceArmDnsZoneRead(d *schema.ResourceData, meta interface{}) error {
 	if props := resp.ZoneProperties; props != nil {
 		d.Set("number_of_record_sets", props.NumberOfRecordSets)
 		d.Set("max_number_of_record_sets", props.MaxNumberOfRecordSets)
+		d.Set("zone_type", props.ZoneType)
 
 		if ns := props.NameServers; ns != nil {
 			nameServers := make([]string, 0, len(*ns))
